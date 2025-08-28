@@ -1,7 +1,11 @@
 package com.example.projekt_zaliczeniowy
 
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.MotionEvent
+import android.view.PixelCopy
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
@@ -75,6 +79,29 @@ class SceneScreen : AppCompatActivity() {
             topMargin = 50
         }
 
+        val photoButton = ImageButton(this).apply {
+            setImageDrawable(
+                ContextCompat.getDrawable(
+                    context,
+                    android.R.drawable.ic_menu_camera
+                )
+            )
+            setBackgroundColor(0x55000000) // semi-transparent
+            setOnClickListener {
+                takeScenePhoto()
+            }
+        }
+
+// Layout params for bottom-right corner
+        val photoLayoutParams = FrameLayout.LayoutParams(150, 150).apply {
+            rightMargin = 30
+            bottomMargin = 50
+            gravity = android.view.Gravity.BOTTOM or android.view.Gravity.END
+        }
+
+        container.addView(photoButton, photoLayoutParams)
+
+
         container.addView(backButton, layoutParams)
     }
 
@@ -82,4 +109,45 @@ class SceneScreen : AppCompatActivity() {
         super.onDestroy()
         arSceneView.destroy()
     }
+
+    private
+    fun takeScenePhoto() {
+        val bitmap = Bitmap.createBitmap(
+            arSceneView.width,
+            arSceneView.height,
+            Bitmap.Config.ARGB_8888
+        )
+
+        PixelCopy.request(arSceneView, bitmap, { copyResult ->
+            if (copyResult == PixelCopy.SUCCESS) {
+                // Save or use bitmap
+                saveBitmapToGallery(bitmap)
+            } else {
+                android.widget.Toast.makeText(this, "Failed to capture", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }, Handler(Looper.getMainLooper()))
+    }
+
+    private fun saveBitmapToGallery(bitmap: Bitmap) {
+        val filename = "ARScene_${System.currentTimeMillis()}.png"
+        val fos = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            val contentValues = android.content.ContentValues().apply {
+                put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/ARApp")
+            }
+            val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            uri?.let { contentResolver.openOutputStream(it) }
+        } else {
+            val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM).toString()
+            java.io.FileOutputStream(java.io.File(imagesDir, filename))
+        }
+
+        fos?.use {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+            android.widget.Toast.makeText(this, "Saved to gallery", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
 }
