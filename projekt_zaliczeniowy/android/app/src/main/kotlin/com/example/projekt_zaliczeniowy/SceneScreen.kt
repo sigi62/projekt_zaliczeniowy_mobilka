@@ -4,18 +4,22 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.PixelCopy
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
+import com.google.ar.core.HitResult
 import io.github.sceneview.ar.ARSceneView
+import io.github.sceneview.createEnvironmentLoader
 import io.github.sceneview.createMaterialLoader
 import io.github.sceneview.createModelLoader
-import io.github.sceneview.node.ModelNode
 import io.github.sceneview.node.CylinderNode
+import io.github.sceneview.node.ModelNode
 import io.github.sceneview.math.Position
 import io.github.sceneview.math.Rotation
 import io.github.sceneview.math.Scale
@@ -25,6 +29,8 @@ import java.io.FileOutputStream
 class SceneScreen : AppCompatActivity() {
 
     private lateinit var arSceneView: ARSceneView
+    private var selectedNode: ModelNode? = null
+    private var isDragging = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +42,7 @@ class SceneScreen : AppCompatActivity() {
         arSceneView = ARSceneView(this)
         container.addView(arSceneView)
 
-        // Add a static cylinder in front of the camera
+        // Add static cylinder
         val cylinder = CylinderNode(
             engine = arSceneView.engine,
             radius = 0.2f,
@@ -55,63 +61,83 @@ class SceneScreen : AppCompatActivity() {
         }
         arSceneView.addChildNode(cylinder)
 
+        val environmentLoader = arSceneView.engine.createEnvironmentLoader(this)
+        arSceneView.environment = environmentLoader.createHDREnvironment("environment.hdr")!!
+
+
         arSceneView.setOnTouchListener { _, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                val frame = arSceneView.frame
-                val hit = frame?.hitTest(event)
-                    ?.firstOrNull { it.trackable is com.google.ar.core.Plane }
-                hit?.let { placeModelAtHit(it) }
+
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    val hitResult = arSceneView.frame
+                        ?.hitTest(event)
+                        ?.firstOrNull { it.trackable is com.google.ar.core.Plane }
+
+                    hitResult?.let {
+                        selectedNode = findNodeNearHit(it)
+                        isDragging = selectedNode != null
+                    }
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    if (isDragging) {
+                        val hitResult = arSceneView.frame
+                            ?.hitTest(event)
+                            ?.firstOrNull { it.trackable is com.google.ar.core.Plane }
+
+                        hitResult?.let {
+                            selectedNode?.transform(
+                                position = Position(it.hitPose.tx(), it.hitPose.ty(), it.hitPose.tz())
+                            )
+                        }
+                    }
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    if (!isDragging) {
+                        val hitResult = arSceneView.frame
+                            ?.hitTest(event)
+                            ?.firstOrNull { it.trackable is com.google.ar.core.Plane }
+
+                        hitResult?.let { placeModelAtHit(it) }
+                    }
+
+                    selectedNode = null
+                    isDragging = false
+                }
             }
+
             true
         }
 
 
+        // Back button
         val backButton = ImageButton(this).apply {
             setImageDrawable(
-                ContextCompat.getDrawable(
-                    context,
-                    android.R.drawable.ic_menu_close_clear_cancel
-                )
+                ContextCompat.getDrawable(context, android.R.drawable.ic_menu_close_clear_cancel)
             )
-            setBackgroundColor(0x55000000) // semi-transparent background
-            setOnClickListener {
-                // Return back to Flutter
-                finish()  // simply finish this Activity
-            }
+            setBackgroundColor(0x55000000)
+            setOnClickListener { finish() }
         }
-
-        // Layout params for top-left corner
-        val layoutParams = FrameLayout.LayoutParams(
-            150, 150 // width, height in pixels
-        ).apply {
+        val backParams = FrameLayout.LayoutParams(150, 150).apply {
             leftMargin = 30
             topMargin = 50
         }
+        container.addView(backButton, backParams)
 
         val photoButton = ImageButton(this).apply {
-            setImageDrawable(
-                ContextCompat.getDrawable(
-                    context,
-                    android.R.drawable.ic_menu_camera
-                )
-            )
-            setBackgroundColor(0x55000000) // semi-transparent
-            setOnClickListener {
-                takeScenePhoto()
-            }
+            setBackgroundResource(R.drawable.photo_button)
+            setOnClickListener { takeScenePhoto() }
         }
 
-// Layout params for bottom-right corner
-        val photoLayoutParams = FrameLayout.LayoutParams(150, 150).apply {
-            rightMargin = 30
+// Layout params for bottom-center
+        val photoParams = FrameLayout.LayoutParams(150, 150).apply {
+            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
             bottomMargin = 50
-            gravity = android.view.Gravity.BOTTOM or android.view.Gravity.END
         }
 
-        container.addView(photoButton, photoLayoutParams)
+        container.addView(photoButton, photoParams)
 
-
-        container.addView(backButton, layoutParams)
     }
 
     override fun onDestroy() {
@@ -119,20 +145,13 @@ class SceneScreen : AppCompatActivity() {
         arSceneView.destroy()
     }
 
-    private
-    fun takeScenePhoto() {
-        val bitmap = Bitmap.createBitmap(
-            arSceneView.width,
-            arSceneView.height,
-            Bitmap.Config.ARGB_8888
-        )
-
-        PixelCopy.request(arSceneView, bitmap, { copyResult ->
-            if (copyResult == PixelCopy.SUCCESS) {
-                // Save or use bitmap
+    private fun takeScenePhoto() {
+        val bitmap = Bitmap.createBitmap(arSceneView.width, arSceneView.height, Bitmap.Config.ARGB_8888)
+        PixelCopy.request(arSceneView, bitmap, { result ->
+            if (result == PixelCopy.SUCCESS) {
                 saveBitmapToGallery(bitmap)
             } else {
-                android.widget.Toast.makeText(this, "Failed to capture", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to capture", Toast.LENGTH_SHORT).show()
             }
         }, Handler(Looper.getMainLooper()))
     }
@@ -148,32 +167,41 @@ class SceneScreen : AppCompatActivity() {
             val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
             uri?.let { contentResolver.openOutputStream(it) }
         } else {
-            val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM).toString()
-            java.io.FileOutputStream(java.io.File(imagesDir, filename))
+            val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM)
+            FileOutputStream(File(imagesDir, filename))
         }
-
         fos?.use {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
-            android.widget.Toast.makeText(this, "Saved to gallery", android.widget.Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Saved to gallery", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun placeModelAtHit(hit: com.google.ar.core.HitResult) {
         val anchor = hit.createAnchor()
         val modelLoader = arSceneView.engine.createModelLoader(this)
+        val modelInstance = modelLoader.createModelInstance("models/lion.glb") ?: return
 
-        val modelInstance = modelLoader.createModelInstance("models/alphabet.glb")
-
-        // Wrap it in a ModelNode (which is a Node)
-        val modelNode = ModelNode(
-            modelInstance = modelInstance,
-            scaleToUnits = 0.5f // optional scaling
-        ).apply {
-            scale = Scale(0.2f, 0.2f, 0.2f)
+        val modelNode = ModelNode(modelInstance = modelInstance).apply {
+            scale = Scale(0.01f,0.01f,0.01f)
             position = Position(anchor.pose.tx(), anchor.pose.ty(), anchor.pose.tz())
         }
-
         arSceneView.addChildNode(modelNode)
+    }
+
+    private fun findNodeNearHit(hit: HitResult): ModelNode? {
+        val hitPos = Position(hit.hitPose.tx(), hit.hitPose.ty(), hit.hitPose.tz())
+
+        fun distance(a: Position, b: Position): Float {
+            val dx = a.x - b.x
+            val dy = a.y - b.y
+            val dz = a.z - b.z
+            return kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
+        }
+
+        return arSceneView.childNodes
+            .filterIsInstance<ModelNode>()
+            .minByOrNull { node -> distance(node.position, hitPos) }
+            ?.takeIf { distance(it.position, hitPos) < 0.2f }
     }
 
 

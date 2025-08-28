@@ -10,9 +10,30 @@ class StartScreen extends StatefulWidget {
   @override
   State<StartScreen> createState() => _StartScreenState();
 }
-
 class _StartScreenState extends State<StartScreen> {
   bool _cameraGranted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermissionOnStart();
+  }
+
+  Future<void> _checkPermissionOnStart() async {
+    final status = await Permission.camera.status;
+    if (status.isGranted) {
+      setState(() {
+        _cameraGranted = true;
+      });
+      // Auto-navigate if you want
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ARScreen()),
+        );
+      }
+    }
+  }
 
   Future<void> _askPermissions() async {
     final cameraStatus = await Permission.camera.request();
@@ -22,7 +43,6 @@ class _StartScreenState extends State<StartScreen> {
     });
 
     if (_cameraGranted) {
-      // ✅ Navigate to AR screen
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -34,6 +54,7 @@ class _StartScreenState extends State<StartScreen> {
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
