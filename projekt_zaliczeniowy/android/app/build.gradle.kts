@@ -51,4 +51,5 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.compose.ui:ui-android:1.9.0")
     implementation("androidx.xr.arcore:arcore:1.0.0-alpha05")
+    implementation("androidx.core:core-ktx:1.13.1")
 }

@@ -12,15 +12,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import io.github.sceneview.ar.ARSceneView
-import io.github.sceneview.ar.arcore.hitTest
-import io.github.sceneview.ar.node.HitResultNode
 import io.github.sceneview.createMaterialLoader
+import io.github.sceneview.createModelLoader
 import io.github.sceneview.node.ModelNode
 import io.github.sceneview.node.CylinderNode
-import io.github.sceneview.node.CubeNode
 import io.github.sceneview.math.Position
 import io.github.sceneview.math.Rotation
-import io.github.sceneview.math.Size
+import io.github.sceneview.math.Scale
+import java.io.File
+import java.io.FileOutputStream
 
 class SceneScreen : AppCompatActivity() {
 
@@ -55,6 +55,15 @@ class SceneScreen : AppCompatActivity() {
         }
         arSceneView.addChildNode(cylinder)
 
+        arSceneView.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                val frame = arSceneView.frame
+                val hit = frame?.hitTest(event)
+                    ?.firstOrNull { it.trackable is com.google.ar.core.Plane }
+                hit?.let { placeModelAtHit(it) }
+            }
+            true
+        }
 
 
         val backButton = ImageButton(this).apply {
@@ -147,6 +156,24 @@ class SceneScreen : AppCompatActivity() {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
             android.widget.Toast.makeText(this, "Saved to gallery", android.widget.Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun placeModelAtHit(hit: com.google.ar.core.HitResult) {
+        val anchor = hit.createAnchor()
+        val modelLoader = arSceneView.engine.createModelLoader(this)
+
+        val modelInstance = modelLoader.createModelInstance("models/alphabet.glb")
+
+        // Wrap it in a ModelNode (which is a Node)
+        val modelNode = ModelNode(
+            modelInstance = modelInstance,
+            scaleToUnits = 0.5f // optional scaling
+        ).apply {
+            scale = Scale(0.2f, 0.2f, 0.2f)
+            position = Position(anchor.pose.tx(), anchor.pose.ty(), anchor.pose.tz())
+        }
+
+        arSceneView.addChildNode(modelNode)
     }
 
 
