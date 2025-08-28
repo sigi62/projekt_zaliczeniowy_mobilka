@@ -25,7 +25,7 @@ android {
         applicationId = "com.example.projekt_zaliczeniowy"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -46,7 +46,9 @@ flutter {
 
 dependencies {
     implementation("com.google.ar:core:1.41.0")
-    implementation("com.google.ar.sceneform:core:1.15.0")
-    implementation("com.google.ar.sceneform.ux:sceneform-ux:1.17.1")
+    implementation("io.github.sceneview:arsceneview:2.3.0")
+    implementation("io.github.sceneview:sceneview:2.3.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.compose.ui:ui-android:1.9.0")
+    implementation("androidx.xr.arcore:arcore:1.0.0-alpha05")
 }
