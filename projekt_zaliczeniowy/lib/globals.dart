@@ -1,3 +1,3 @@
 library globals;
 
-String? selectedModel = "lion.glb"; // default model
+String? selectedModelGlobal = ""; // default model

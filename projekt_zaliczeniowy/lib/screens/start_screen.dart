@@ -32,6 +32,10 @@ class StartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final displayModelName = selectedModelGlobal != null
+        ? selectedModelGlobal!.replaceAll(RegExp(r'\.glb$', caseSensitive: false), '')
+        : null;
     return Scaffold(
       appBar: AppBar(title: const Text("Start Screen")),
       body: Center(
@@ -41,7 +45,7 @@ class StartScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => _openModelsScreen(context),
               child: Text(
-                selectedModel != null ? "Model: $selectedModel" : "Select Model",
+                displayModelName != null ? "Model: $displayModelName" : "Select Model",
               ),
             ),
             const SizedBox(height: 20),
