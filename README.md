@@ -2,7 +2,7 @@ Celem projektu jest zrobienie aplikacji mobilnej w języku Flutter, która będz
 
 Aplikacja używa Rozwiązania ArCore i ArSceneView dla Androida, a dla IOS używać będzie biblioteki ArKit.
 
-Częsci wspólne napisane są we Flutterze podczas gdy ekran AR i jego rozwiązania są napisane osobno za pomocą Channeling Method
+Częsci wspólne napisane są we Flutterze podczas gdy ekran AR i jego rozwiązania są napisane osobno za pomocą Channel Method
 
 Póki co aplikacja pozwala na wybrów modeli z wcześniej załadowanej listy i wyświetlanie ich w rozszerzonej rzeczywistości. Dodana jest minimalna manipulacja modelem (przesuwanie po płaszczyźnie)
 
