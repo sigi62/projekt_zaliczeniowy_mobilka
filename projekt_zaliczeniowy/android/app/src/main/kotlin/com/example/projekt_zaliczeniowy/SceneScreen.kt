@@ -25,6 +25,7 @@ import io.github.sceneview.math.Rotation
 import io.github.sceneview.math.Scale
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.ByteBuffer
 
 class SceneScreen : AppCompatActivity() {
 
@@ -61,8 +62,13 @@ class SceneScreen : AppCompatActivity() {
         }
         arSceneView.addChildNode(cylinder)
 
+        // Inside SceneScreen.onCreate()
+
         val environmentLoader = arSceneView.engine.createEnvironmentLoader(this)
-        arSceneView.environment = environmentLoader.createHDREnvironment("environment.hdr")!!
+
+// Load HDR directly from APK assets
+        val enviorment =  loadModelFromFlutterAsset("environment.hdr")
+        arSceneView.environment = environmentLoader.createHDREnvironment(enviorment)!!
 
 
         arSceneView.setOnTouchListener { _, event ->
@@ -179,7 +185,8 @@ class SceneScreen : AppCompatActivity() {
     private fun placeModelAtHit(hit: com.google.ar.core.HitResult) {
         val anchor = hit.createAnchor()
         val modelLoader = arSceneView.engine.createModelLoader(this)
-        val modelInstance = modelLoader.createModelInstance("models/lion.glb") ?: return
+        val modelbuffer = loadModelFromFlutterAsset("models/lion.glb")
+        val modelInstance = modelLoader.createModelInstance(modelbuffer) ?: return
 
         val modelNode = ModelNode(modelInstance = modelInstance).apply {
             scale = Scale(0.01f,0.01f,0.01f)
@@ -202,6 +209,13 @@ class SceneScreen : AppCompatActivity() {
             .filterIsInstance<ModelNode>()
             .minByOrNull { node -> distance(node.position, hitPos) }
             ?.takeIf { distance(it.position, hitPos) < 0.2f }
+    }
+
+    private fun loadModelFromFlutterAsset(assetPath: String): ByteBuffer {
+        assets.list("flutter_assets/assets/models")?.forEach { println(it) }
+
+        val bytes = assets.open("flutter_assets/assets/$assetPath").use { it.readBytes() }
+        return ByteBuffer.wrap(bytes)
     }
 
 

@@ -7,6 +7,7 @@ class ARScreen extends StatelessWidget {
 
   static const platform = MethodChannel("com.example.ar/ar");
 
+
   Future<void> _startAR() async {
     try {
       if (Platform.isAndroid) {
