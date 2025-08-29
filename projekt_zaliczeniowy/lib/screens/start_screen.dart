@@ -1,84 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/services.dart';
-import 'ar_screen.dart';
+import 'models_screen.dart';
+import '../globals.dart'; // for selectedModel
 
-class StartScreen extends StatefulWidget {
-  const StartScreen({super.key});
+class StartScreen extends StatelessWidget {
+  final String? modelName; // nullable
+  const StartScreen({super.key, this.modelName});
 
-  @override
-  State<StartScreen> createState() => _StartScreenState();
-}
-class _StartScreenState extends State<StartScreen> {
-  bool _cameraGranted = false;
+  static const platform = MethodChannel("com.example.ar/ar");
 
-  @override
-  void initState() {
-    super.initState();
-    _checkPermissionOnStart();
-  }
-
-  Future<void> _checkPermissionOnStart() async {
-    final status = await Permission.camera.status;
-    if (status.isGranted) {
-      setState(() {
-        _cameraGranted = true;
-      });
-      // Auto-navigate if you want
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ARScreen()),
-        );
+  Future<void> _startAR() async {
+    try {
+      if (Platform.isAndroid) {
+        final args = modelName != null ? {"model": modelName} : null;
+        await platform.invokeMethod("startAR", args);
+      } else if (Platform.isIOS) {
+        // TODO: launch ARKit screen via channel
       }
+    } on PlatformException catch (e) {
+      debugPrint("Failed to open AR: ${e.message}");
     }
   }
 
-  Future<void> _askPermissions() async {
-    final cameraStatus = await Permission.camera.request();
-
-    setState(() {
-      _cameraGranted = cameraStatus.isGranted;
-    });
-
-    if (_cameraGranted) {
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const ARScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Camera permission is required")),
-      );
-    }
+  void _openModelsScreen(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ModelsScreen()),
+    );
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      appBar: AppBar(title: const Text("Start Screen")),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.videocam, size: 100, color: _cameraGranted ? Colors.green : Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              _cameraGranted ? "Camera Granted" : "Camera Needed",
-              style: const TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 40),
             ElevatedButton(
-              onPressed: _askPermissions,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              onPressed: () => _openModelsScreen(context),
+              child: Text(
+                selectedModel != null ? "Model: $selectedModel" : "Select Model",
               ),
-              child: const Text("Grant Permissions"),
-            )
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _startAR,
+              child: const Text("Launch AR"),
+            ),
           ],
         ),
       ),

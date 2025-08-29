@@ -15,7 +15,10 @@ class MainActivity: FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
             .setMethodCallHandler { call, result ->
                 if (call.method == "startAR") {
-                    val intent = Intent(this, SceneScreen()::class.java)
+                    val modelName = call.argument<String>("model")
+                    val intent = Intent(this, SceneScreen::class.java).apply {
+                        putExtra("modelName", modelName)
+                    }
                     startActivity(intent)
                     result.success(null)
                 } else {
