@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Cube outline -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,2 L3,7 v10 l9,5 9,-5 V7 L12,2 z M12,4.5 l7,3.89 v7.22 l-7,3.89 -7,-3.89 V8.39 L12,4.5 z M12,12.5 l5,-2.78 v-3.61 l-5,2.78 -5,-2.78 v3.61 l5,2.78 z"/>
+</vector>

@@ -37,58 +37,34 @@ class SceneScreen : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Get model name from intent (nullable)
         modelName = intent.getStringExtra("modelName")
 
         val container = FrameLayout(this)
         setContentView(container)
 
-        // Initialize ARSceneView
         arSceneView = ARSceneView(this)
         container.addView(arSceneView)
 
-        // Add static cylinder
-        val cylinder = CylinderNode(
-            engine = arSceneView.engine,
-            radius = 0.2f,
-            height = 2.0f,
-            materialInstance = arSceneView.engine.createMaterialLoader(this).createColorInstance(
-                color = Color.Blue,
-                metallic = 0.5f,
-                roughness = 0.2f,
-                reflectance = 0.4f
-            )
-        ).apply {
-            transform(
-                position = Position(0f, 1.0f, -1f),
-                rotation = Rotation(x = 90f)
-            )
-        }
-        arSceneView.addChildNode(cylinder)
-
-        // Load HDR environment
         val environmentLoader = arSceneView.engine.createEnvironmentLoader(this)
         val environment = loadAssetAsByteBuffer("environment.hdr")
         arSceneView.environment = environmentLoader.createHDREnvironment(environment)!!
 
-        // Touch listener
         arSceneView.setOnTouchListener { _, event ->
             handleTouch(event)
             true
         }
 
-        // Back button
         val backButton = ImageButton(this).apply {
-            setImageDrawable(ContextCompat.getDrawable(context, android.R.drawable.ic_menu_close_clear_cancel))
-            setBackgroundColor(0x55000000)
+            setBackgroundResource(R.drawable.back_arrow)
             setOnClickListener { finish() }
         }
-        container.addView(backButton, FrameLayout.LayoutParams(150, 150).apply {
+        val backParams = FrameLayout.LayoutParams(120, 120).apply {
             leftMargin = 30
             topMargin = 50
-        })
+        }
+        container.addView(backButton, backParams)
 
-        // Photo button
+
         val photoButton = ImageButton(this).apply {
             setBackgroundResource(R.drawable.photo_button)
             setOnClickListener { takeScenePhoto() }
@@ -131,7 +107,7 @@ class SceneScreen : AppCompatActivity() {
     }
 
     private fun placeModelAtHit(hit: HitResult) {
-        if (modelName == null) return // no model selected
+        if (modelName == null) return
 
         val anchor = hit.createAnchor()
         val modelLoader = arSceneView.engine.createModelLoader(this)

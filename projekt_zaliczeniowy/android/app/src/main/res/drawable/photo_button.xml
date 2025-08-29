@@ -1,18 +1,16 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Outer white ring (empty inside) -->
     <item>
         <shape android:shape="oval">
-            <solid android:color="@android:color/transparent"/> <!-- fully transparent center -->
+            <solid android:color="@android:color/transparent"/>
             <stroke
                 android:width="3dp"
-                android:color="#FFFFFFFF"/> <!-- white border -->
+                android:color="#FFFFFFFF"/>
         </shape>
     </item>
 
-    <!-- Inner black transparent circle -->
-    <item android:top="20dp" android:bottom="20dp" android:left="20dp" android:right="20dp">
+    <item android:top="1dp" android:bottom="1dp" android:left="1dp" android:right="1dp">
         <shape android:shape="oval">
-            <solid android:color="#55000000"/> <!-- semi-transparent black -->
+            <solid android:color="#55000000"/>
         </shape>
     </item>
 </layer-list>
