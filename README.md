@@ -1,4 +1,4 @@
-Celem projektu jest zrobioenie aplikacji mobilnej w języku Flutter, która będzie używać rozwiązań rozszerzonej rzeczywistości (AR) do wyświetlania modeli 3D.
+Celem projektu jest zrobienie aplikacji mobilnej w języku Flutter, która będzie używać rozwiązań rozszerzonej rzeczywistości (AR) do wyświetlania modeli 3D.
 
 Aplikacja używa Rozwiązania ArCore i ArSceneView dla Androida, a dla IOS używać będzie biblioteki ArKit.
 
