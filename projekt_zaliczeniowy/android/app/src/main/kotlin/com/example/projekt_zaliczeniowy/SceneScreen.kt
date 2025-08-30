@@ -140,7 +140,11 @@ class SceneScreen : AppCompatActivity() {
     private fun takeScenePhoto() {
         val bitmap = Bitmap.createBitmap(arSceneView.width, arSceneView.height, Bitmap.Config.ARGB_8888)
         PixelCopy.request(arSceneView, bitmap, { result ->
-            if (result == PixelCopy.SUCCESS) saveBitmapToGallery(bitmap)
+            if (result == PixelCopy.SUCCESS)
+            {
+                saveBitmapToGallery(bitmap)
+                Toast.makeText(this, "Screenshot saved!", Toast.LENGTH_SHORT).show()
+            }
             else Toast.makeText(this, "Failed to capture", Toast.LENGTH_SHORT).show()
         }, Handler(Looper.getMainLooper()))
     }

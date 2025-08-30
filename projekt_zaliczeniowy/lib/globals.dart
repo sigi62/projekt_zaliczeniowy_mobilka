@@ -1,3 +1,3 @@
 library globals;
 
-String? selectedModelGlobal = ""; // default model
+String? selectedModelGlobal = null; // default model

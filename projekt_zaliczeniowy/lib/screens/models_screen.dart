@@ -120,6 +120,7 @@ class _ModelsScreenState extends State<ModelsScreen> {
                         style: TextStyle(
                           color: Colors.black87,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 18,
                         ),
                       ),
                     ),

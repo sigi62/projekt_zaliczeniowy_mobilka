@@ -32,28 +32,48 @@ class StartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final displayModelName = selectedModelGlobal != null
         ? selectedModelGlobal!.replaceAll(RegExp(r'\.glb$', caseSensitive: false), '')
         : null;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Start Screen")),
       body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ElevatedButton(
-              onPressed: () => _openModelsScreen(context),
-              child: Text(
-                displayModelName != null ? "Model: $displayModelName" : "Select Model",
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GridView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2, // 2 buttons per row
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 2.5, // Make buttons larger
+                ),
+                itemCount: 2,
+                itemBuilder: (context, index) {
+                  return ElevatedButton(
+                    onPressed: index == 0 ? () => _openModelsScreen(context) : _startAR,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(60), // increase button height
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      index == 0
+                          ? (displayModelName != null ? "Model: $displayModelName" : "Select Model")
+                          : "Launch AR",
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                  );
+                },
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _startAR,
-              child: const Text("Launch AR"),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

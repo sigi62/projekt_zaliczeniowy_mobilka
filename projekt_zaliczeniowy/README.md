@@ -1,6 +1,6 @@
 # projekt_zaliczeniowy
 
-A new Flutter project.
+Projekt otwierający modele w rozszerzeonej rzeczywistości.
 
 ## Getting Started
 

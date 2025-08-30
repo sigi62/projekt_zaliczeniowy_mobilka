@@ -1,8 +1,16 @@
 {
   "models": [
-    "lion.glb",
+    "apple.glb",
     "cat.glb",
+    "dog.glb",
+    "fox.glb",
+    "goat.glb",
+    "hen.glb",
+    "lion.glb",
+    "monkey.glb",
+    "owl.glb",
+    "parrot.glb",
     "rat.glb",
-    "van.glb"
+    "zebra.glb"
   ]
 }
